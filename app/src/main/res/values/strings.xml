@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">WordFind</string>
+    <string name="app_logo_description">Lightbulb icon</string>
+    <string name="splash_text">Type the meaning — find the word.</string>
+    <string name="onboarding_1_title">Describe a meaning…</string>
+    <string name="onboarding_1_desc">Can\'t find the right word? Just type what you mean, and we\'ll help you find it.</string>
+
+    <string name="onboarding_2_title">Just type the meaning...\n...and we\'ll find the exact word.</string>
+    <string name="onboarding_2_desc"></string>
+    <string name="onboarding_3_title">Master Vocabulary</string>
+    <string name="onboarding_3_desc">Save words. Learn them. Find them by meaning.</string>
+
+    <string name="button_continue">Continue</string>
+    <string name="button_get_started">Get Started</string>
+    <string name="button_skip">Skip</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

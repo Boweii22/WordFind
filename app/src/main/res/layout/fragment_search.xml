@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <ImageView
+        android:id="@+id/icon_menu"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_menu_hamburger"
+        android:contentDescription="Open Navigation Menu"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="48dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#333333" />
+
+    <ImageView
+        android:id="@+id/icon_favourites"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_heart_filled"
+        android:contentDescription="Favourites"
+        android:layout_marginTop="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#333333" />
+
+    <TextView
+        android:id="@+id/text_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="What word are you\nlooking for?"
+        android:textColor="#333333"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:layout_marginTop="32dp"
+        app:layout_constraintTop_toBottomOf="@id/icon_menu"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/edit_search"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/search_bar_background"
+        android:hint="Describe the meaning..."
+        android:textColorHint="@color/black"
+        android:textColor="@color/black"
+        android:paddingStart="48dp"
+        android:paddingEnd="48dp"
+        android:textSize="16sp"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/text_title" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="12dp"
+        android:src="@drawable/ic_search"
+        app:layout_constraintStart_toStartOf="@id/edit_search"
+        app:layout_constraintTop_toTopOf="@id/edit_search"
+        app:layout_constraintBottom_toBottomOf="@id/edit_search"
+        app:tint="#757575" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="12dp"
+        android:src="@drawable/ic_mic"
+        app:layout_constraintEnd_toEndOf="@id/edit_search"
+        app:layout_constraintTop_toTopOf="@id/edit_search"
+        app:layout_constraintBottom_toBottomOf="@id/edit_search"
+        app:tint="#4285F4" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/edit_search"
+        app:singleLine="false">
+
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.Material3.Chip.Suggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="fear of heights"
+            app:chipBackgroundColor="#F1F3F4"
+            android:textColor="#333333" />
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.Material3.Chip.Suggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="very happy"
+            app:chipBackgroundColor="#F1F3F4"
+            android:textColor="#333333" />
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.Material3.Chip.Suggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="study of birds"
+            app:chipBackgroundColor="#F1F3F4"
+            android:textColor="#333333" />
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.Material3.Chip.Suggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="a group of lions"
+            app:chipBackgroundColor="#F1F3F4"
+            android:textColor="#333333" />
+        <com.google.android.material.chip.Chip
+            style="@style/Widget.Material3.Chip.Suggestion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="someone who loves books"
+            app:chipBackgroundColor="#F1F3F4"
+            android:textColor="#333333" />
+    </com.google.android.material.chip.ChipGroup>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
