@@ -13,13 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.smartherd.wordfind.adapters.ShimmerAdapter;
 import com.smartherd.wordfind.adapters.WordResultAdapter;
 import com.smartherd.wordfind.api.DictionaryService;
-import com.smartherd.wordfind.model.Definition;
 import com.smartherd.wordfind.model.DefinitionResponse;
 import com.smartherd.wordfind.model.Meaning;
 import com.smartherd.wordfind.model.WordResult;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,29 +30,30 @@ public class ResultsActivity extends AppCompatActivity {
 
     public static final String EXTRA_RESULTS_LIST = "extra_results_list";
 
+    // UI elements
     private RecyclerView shimmerRecycler;
     private RecyclerView resultsRecycler;
+    private View layoutNoResults;
 
+    // Adapters
     private ShimmerAdapter shimmerAdapter;
     private WordResultAdapter wordAdapter;
 
-    private List<WordResult> resultsList = new ArrayList<>();
+    // Data
+    private List<WordResult> resultsList;
 
+    // Dictionary API
     private DictionaryService dictionaryService;
 
     private static final String TAG = "ResultsActivity";
 
-    private final AtomicInteger definitionCallsRemaining = new AtomicInteger(0);
-    private final List<Call<?>> runningCalls = new ArrayList<>();
-
-    // Stop updates if Activity finished
-    private boolean isActivityAlive = true;
+    // Track how many definition calls are pending
+    private final AtomicInteger definitionCallCounter = new AtomicInteger(0);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Status bar
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(ContextCompat.getColor(this, android.R.color.white));
         new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView())
@@ -66,179 +64,134 @@ public class ResultsActivity extends AppCompatActivity {
         // Back button
         findViewById(R.id.icon_back).setOnClickListener(v -> finish());
 
-        // Views
+        // UI references
         shimmerRecycler = findViewById(R.id.recycler_shimmer);
         resultsRecycler = findViewById(R.id.recycler_results);
+        layoutNoResults = findViewById(R.id.layout_no_results);
 
-        // Adapters
+        // Load incoming results from SearchFragment
+        resultsList = (List<WordResult>) getIntent().getSerializableExtra(EXTRA_RESULTS_LIST);
+
         shimmerAdapter = new ShimmerAdapter();
         shimmerRecycler.setAdapter(shimmerAdapter);
-
-        // Retrieve results
-        List<WordResult> incomingList =
-                (List<WordResult>) getIntent().getSerializableExtra(EXTRA_RESULTS_LIST);
-
-        if (incomingList != null) {
-            resultsList.addAll(incomingList);
-        }
 
         wordAdapter = new WordResultAdapter(this, resultsList);
         resultsRecycler.setAdapter(wordAdapter);
 
+        Log.d("DEBUG_RESULTS", "Received results count = " + resultsList.size());
+        for (WordResult w : resultsList) {
+            Log.d("DEBUG_RESULTS", "Word = " + w.getWord() + " | Score = " + w.getScore());
+        }
+
+        // Initial visibility
         shimmerRecycler.setVisibility(View.VISIBLE);
         resultsRecycler.setVisibility(View.GONE);
+        layoutNoResults.setVisibility(View.GONE);
 
-        // API setup
+        // Retrofit for dictionary
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(DictionaryService.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
         dictionaryService = retrofit.create(DictionaryService.class);
 
-        if (!resultsList.isEmpty()) {
+        if (resultsList != null && !resultsList.isEmpty()) {
+            definitionCallCounter.set(resultsList.size());
             fetchDefinitionsForAllWords();
         } else {
-            showResults();
+            // Datamuse returned ZERO items → show No Results immediately
+            showNoResults();
         }
     }
 
-    // ----------------------------------------------------------
-    // FETCH DEFINITIONS FOR EACH WORD SAFELY
-    // ----------------------------------------------------------
+    // ----------------------------------------------------------------
+    // FETCH DEFINITIONS FOR EACH WORD (but DO NOT remove words)
+    // ----------------------------------------------------------------
     private void fetchDefinitionsForAllWords() {
-
-        definitionCallsRemaining.set(resultsList.size());
-
         for (int i = 0; i < resultsList.size(); i++) {
-            WordResult wr = resultsList.get(i);
-            fetchDefinition(wr, i);
+            fetchDefinitionForWord(resultsList.get(i), i);
         }
     }
 
-    private void fetchDefinition(WordResult word, int pos) {
+    private void fetchDefinitionForWord(WordResult wordResult, int position) {
 
-        Call<List<DefinitionResponse>> call =
-                dictionaryService.getDefinitions(word.getWord());
+        dictionaryService.getDefinitions(wordResult.getWord())
+                .enqueue(new Callback<List<DefinitionResponse>>() {
 
-        runningCalls.add(call);
+                    @Override
+                    public void onResponse(Call<List<DefinitionResponse>> call,
+                                           Response<List<DefinitionResponse>> response) {
 
-        call.enqueue(new Callback<List<DefinitionResponse>>() {
+                        boolean success = false;
 
-            @Override
-            public void onResponse(Call<List<DefinitionResponse>> call,
-                                   Response<List<DefinitionResponse>> response) {
+                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
 
-                if (!isActivityAlive) return;
+                            Meaning meaning = response.body().get(0).getMeanings().isEmpty()
+                                    ? null
+                                    : response.body().get(0).getMeanings().get(0);
 
-                boolean found = false;
+                            if (meaning != null && !meaning.getDefinitions().isEmpty()) {
+                                wordResult.setDefinition(meaning.getDefinitions().get(0).getDefinition());
+                                wordResult.setPartOfSpeech(meaning.getPartOfSpeech());
+                                success = true;
+                            }
+                        }
 
-                List<DefinitionResponse> body = response.body();
+                        if (!success) {
+                            wordResult.setDefinition("Definition not found.");
+                            wordResult.setPartOfSpeech("N/A");
+                        }
 
-                if (response.isSuccessful() && body != null && !body.isEmpty()) {
-
-                    Meaning meaning = safeFirstMeaning(body);
-                    Definition definition = safeFirstDefinition(meaning);
-
-                    if (definition != null) {
-                        word.setDefinition(definition.getDefinition());
-                        word.setPartOfSpeech(meaning.getPartOfSpeech());
-                        found = true;
+                        wordAdapter.notifyItemChanged(position);
+                        onDefinitionComplete();
                     }
-                }
 
-                if (!found) {
-                    word.setDefinition("Definition not available.");
-                    word.setPartOfSpeech("N/A");
-                }
+                    @Override
+                    public void onFailure(Call<List<DefinitionResponse>> call, Throwable t) {
+                        Log.e(TAG, "Failed def for: " + wordResult.getWord(), t);
+                        wordResult.setDefinition("Definition not found.");
+                        wordResult.setPartOfSpeech("N/A");
 
-                wordAdapter.notifyItemChanged(pos);
-
-                onDefinitionCallFinished();
-            }
-
-            @Override
-            public void onFailure(Call<List<DefinitionResponse>> call, Throwable t) {
-                if (!isActivityAlive) return;
-
-                Log.e(TAG, "Definition load failed for: " + word.getWord(), t);
-
-                word.setDefinition("Definition not available.");
-                word.setPartOfSpeech("N/A");
-
-                wordAdapter.notifyItemChanged(pos);
-
-                onDefinitionCallFinished();
-            }
-        });
+                        wordAdapter.notifyItemChanged(position);
+                        onDefinitionComplete();
+                    }
+                });
     }
 
-    // ----------------------------------------------------------
-    // SAFETY HELPERS FOR NULL / EMPTY API FIELDS
-    // ----------------------------------------------------------
-    private Meaning safeFirstMeaning(List<DefinitionResponse> list) {
-        if (list == null || list.isEmpty()) return null;
+    // ----------------------------------------------------------------
+    // AFTER ALL DEFINITIONS ARE FINISHED LOADING
+    // ----------------------------------------------------------------
+    private void onDefinitionComplete() {
 
-        List<Meaning> m = list.get(0).getMeanings();
-        if (m == null || m.isEmpty()) return null;
+        if (definitionCallCounter.decrementAndGet() == 0) {
 
-        return m.get(0);
-    }
-
-    private Definition safeFirstDefinition(Meaning meaning) {
-        if (meaning == null) return null;
-
-        List<Definition> defs = meaning.getDefinitions();
-        if (defs == null || defs.isEmpty()) return null;
-
-        return defs.get(0);
-    }
-
-    // ----------------------------------------------------------
-    // HANDLE COMPLETION OF ALL DEFINITION FETCHES
-    // ----------------------------------------------------------
-    private void onDefinitionCallFinished() {
-
-        if (definitionCallsRemaining.decrementAndGet() == 0) {
-
-            // Remove invalid words
-            Iterator<WordResult> it = resultsList.iterator();
-            while (it.hasNext()) {
-                WordResult w = it.next();
-                if (w.getDefinition().equals("Definition not available.")) {
-                    it.remove();
-                }
-            }
-
-            wordAdapter.notifyDataSetChanged();
-            showResults();
+            // Datamuse gave results → ALWAYS show list
+            // Even if dictionary failed for some words.
+            showResultsList();
         }
     }
 
-    // ----------------------------------------------------------
-    // SHOW RESULTS & HIDE SHIMMER
-    // ----------------------------------------------------------
-    private void showResults() {
+    // ----------------------------------------------------------------
+    // UI STATE HANDLERS
+    // ----------------------------------------------------------------
+    private void showResultsList() {
         shimmerRecycler.setVisibility(View.GONE);
+        layoutNoResults.setVisibility(View.GONE);
+
         resultsRecycler.setVisibility(View.VISIBLE);
+        wordAdapter.notifyDataSetChanged();
     }
 
-    // ----------------------------------------------------------
-    // LIFECYCLE: PREVENT CRASHES AFTER ACTIVITY CLOSES
-    // ----------------------------------------------------------
+    private void showNoResults() {
+        shimmerRecycler.setVisibility(View.GONE);
+        resultsRecycler.setVisibility(View.GONE);
+
+        layoutNoResults.setVisibility(View.VISIBLE);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        isActivityAlive = false;
-
-        // Cancel all pending API calls to avoid crashes
-        for (Call<?> call : runningCalls) {
-            if (!call.isCanceled()) call.cancel();
-        }
-
-        if (wordAdapter != null) {
-            wordAdapter.shutdownTts();
-        }
+        if (wordAdapter != null) wordAdapter.shutdownTts();
     }
 }
