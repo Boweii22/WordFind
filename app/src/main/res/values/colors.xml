@@ -6,4 +6,5 @@
     <color name="color_Primary">#6200EE</color>
     <color name="color_PrimaryDark">#3700B3</color>
     <color name="color_Accent">#03DAC5</color>
+    <color name="blue">#2563EB</color>
 </resources>

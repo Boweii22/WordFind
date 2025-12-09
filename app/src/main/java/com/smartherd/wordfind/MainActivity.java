@@ -3,7 +3,6 @@ package com.smartherd.wordfind;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MenuItem;
-import android.view.View;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
@@ -19,11 +18,11 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.navigation.NavigationView;
 // 🌟 NEW IMPORTS FOR UNIQUE FRAGMENTS
-import com.smartherd.fragments.FavouritesFragment;
-import com.smartherd.fragments.HistoryFragment;
-import com.smartherd.fragments.PlaceholderFragment;
-import com.smartherd.fragments.SearchFragment;
-import com.smartherd.fragments.SettingsFragment;
+import com.smartherd.wordfind.fragments.FavouritesFragment;
+import com.smartherd.wordfind.fragments.HistoryFragment;
+import com.smartherd.wordfind.fragments.PlaceholderFragment;
+import com.smartherd.wordfind.fragments.SearchFragment;
+import com.smartherd.wordfind.fragments.SettingsFragment;
 
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {

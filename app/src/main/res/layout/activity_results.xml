@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F7F7"
+    tools:context=".ResultsActivity">
+
+    <ImageView
+        android:id="@+id/icon_back"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@drawable/ic_back_arrow"
+        android:contentDescription="Back"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="48dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#333333" />
+
+    <TextView
+        android:id="@+id/text_results_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Results"
+        android:textColor="#333333"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/icon_back"
+        app:layout_constraintBottom_toBottomOf="@id/icon_back"/>
+
+    <!-- 🔥 SHIMMER PLACEHOLDER LIST (shown while loading) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_shimmer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingTop="16dp"
+        android:clipToPadding="false"
+        android:visibility="visible"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/icon_back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:listitem="@layout/item_word_shimmer"
+        />
+
+    <!-- 🔥 REAL RESULTS (hidden until loading is complete) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_results"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingTop="16dp"
+        android:clipToPadding="false"
+        android:visibility="gone"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/icon_back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:listitem="@layout/item_word_card"
+        />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

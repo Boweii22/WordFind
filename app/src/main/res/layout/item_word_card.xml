@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    android:backgroundTint="@color/white"
+    app:cardElevation="4dp"
+    android:background="@android:color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <ImageView
+            android:id="@+id/icon_favourite"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_heart_outline"
+            android:contentDescription="Favorite"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@android:color/holo_red_light" />
+
+        <ImageView
+            android:id="@+id/icon_volume"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_volume"
+            android:contentDescription="Speak word"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toStartOf="@id/icon_favourite"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#333333" />
+
+        <TextView
+            android:id="@+id/text_word"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="#333333"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/text_match_badge"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            tools:text="Serendipity" />
+
+        <TextView
+            android:id="@+id/text_match_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:textStyle="bold"
+            android:textSize="10sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/text_word"
+            app:layout_constraintStart_toEndOf="@id/text_word"
+            app:layout_constraintEnd_toStartOf="@id/icon_volume"
+            tools:background="@drawable/badge_best_match"
+            tools:textColor="@color/black"
+            tools:text="Best Match" />
+
+        <TextView
+            android:id="@+id/text_part_of_speech"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:background="@drawable/tag_background"
+            android:textColor="#757575"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/text_word"
+            tools:text="Noun" />
+
+        <TextView
+            android:id="@+id/text_definition"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/text_part_of_speech"
+            app:layout_constraintTop_toTopOf="@id/text_part_of_speech"
+            app:layout_constraintBottom_toBottomOf="@id/text_part_of_speech"
+            app:layout_constraintVertical_bias="0"
+            tools:text="The occurrence of events by chance in a happy or beneficial way." />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
