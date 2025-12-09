@@ -17,6 +17,7 @@ import com.smartherd.wordfind.model.DefinitionResponse;
 import com.smartherd.wordfind.model.Meaning;
 import com.smartherd.wordfind.model.WordResult;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,24 +31,19 @@ public class ResultsActivity extends AppCompatActivity {
 
     public static final String EXTRA_RESULTS_LIST = "extra_results_list";
 
-    // UI elements
     private RecyclerView shimmerRecycler;
     private RecyclerView resultsRecycler;
     private View layoutNoResults;
 
-    // Adapters
     private ShimmerAdapter shimmerAdapter;
     private WordResultAdapter wordAdapter;
 
-    // Data
     private List<WordResult> resultsList;
 
-    // Dictionary API
     private DictionaryService dictionaryService;
 
     private static final String TAG = "ResultsActivity";
 
-    // Track how many definition calls are pending
     private final AtomicInteger definitionCallCounter = new AtomicInteger(0);
 
     @Override
@@ -61,15 +57,12 @@ public class ResultsActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_results);
 
-        // Back button
         findViewById(R.id.icon_back).setOnClickListener(v -> finish());
 
-        // UI references
         shimmerRecycler = findViewById(R.id.recycler_shimmer);
         resultsRecycler = findViewById(R.id.recycler_results);
         layoutNoResults = findViewById(R.id.layout_no_results);
 
-        // Load incoming results from SearchFragment
         resultsList = (List<WordResult>) getIntent().getSerializableExtra(EXTRA_RESULTS_LIST);
 
         shimmerAdapter = new ShimmerAdapter();
@@ -78,35 +71,25 @@ public class ResultsActivity extends AppCompatActivity {
         wordAdapter = new WordResultAdapter(this, resultsList);
         resultsRecycler.setAdapter(wordAdapter);
 
-        Log.d("DEBUG_RESULTS", "Received results count = " + resultsList.size());
-        for (WordResult w : resultsList) {
-            Log.d("DEBUG_RESULTS", "Word = " + w.getWord() + " | Score = " + w.getScore());
-        }
-
-        // Initial visibility
         shimmerRecycler.setVisibility(View.VISIBLE);
         resultsRecycler.setVisibility(View.GONE);
         layoutNoResults.setVisibility(View.GONE);
 
-        // Retrofit for dictionary
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(DictionaryService.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+
         dictionaryService = retrofit.create(DictionaryService.class);
 
         if (resultsList != null && !resultsList.isEmpty()) {
             definitionCallCounter.set(resultsList.size());
             fetchDefinitionsForAllWords();
         } else {
-            // Datamuse returned ZERO items → show No Results immediately
             showNoResults();
         }
     }
 
-    // ----------------------------------------------------------------
-    // FETCH DEFINITIONS FOR EACH WORD (but DO NOT remove words)
-    // ----------------------------------------------------------------
     private void fetchDefinitionsForAllWords() {
         for (int i = 0; i < resultsList.size(); i++) {
             fetchDefinitionForWord(resultsList.get(i), i);
@@ -117,28 +100,31 @@ public class ResultsActivity extends AppCompatActivity {
 
         dictionaryService.getDefinitions(wordResult.getWord())
                 .enqueue(new Callback<List<DefinitionResponse>>() {
-
                     @Override
                     public void onResponse(Call<List<DefinitionResponse>> call,
                                            Response<List<DefinitionResponse>> response) {
 
                         boolean success = false;
 
-                        if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                        if (response.isSuccessful() &&
+                                response.body() != null &&
+                                !response.body().isEmpty()) {
 
-                            Meaning meaning = response.body().get(0).getMeanings().isEmpty()
-                                    ? null
-                                    : response.body().get(0).getMeanings().get(0);
+                            List<Meaning> meanings = response.body().get(0).getMeanings();
 
-                            if (meaning != null && !meaning.getDefinitions().isEmpty()) {
-                                wordResult.setDefinition(meaning.getDefinitions().get(0).getDefinition());
-                                wordResult.setPartOfSpeech(meaning.getPartOfSpeech());
-                                success = true;
+                            if (meanings != null && !meanings.isEmpty()) {
+                                Meaning m = meanings.get(0);
+
+                                if (m.getDefinitions() != null && !m.getDefinitions().isEmpty()) {
+                                    wordResult.setDefinition(m.getDefinitions().get(0).getDefinition());
+                                    wordResult.setPartOfSpeech(m.getPartOfSpeech());
+                                    success = true;
+                                }
                             }
                         }
 
                         if (!success) {
-                            wordResult.setDefinition("Definition not found.");
+                            wordResult.setDefinition("Definition not available.");
                             wordResult.setPartOfSpeech("N/A");
                         }
 
@@ -149,7 +135,8 @@ public class ResultsActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<List<DefinitionResponse>> call, Throwable t) {
                         Log.e(TAG, "Failed def for: " + wordResult.getWord(), t);
-                        wordResult.setDefinition("Definition not found.");
+
+                        wordResult.setDefinition("Definition not available.");
                         wordResult.setPartOfSpeech("N/A");
 
                         wordAdapter.notifyItemChanged(position);
@@ -158,26 +145,36 @@ public class ResultsActivity extends AppCompatActivity {
                 });
     }
 
-    // ----------------------------------------------------------------
-    // AFTER ALL DEFINITIONS ARE FINISHED LOADING
-    // ----------------------------------------------------------------
     private void onDefinitionComplete() {
 
         if (definitionCallCounter.decrementAndGet() == 0) {
 
-            // Datamuse gave results → ALWAYS show list
-            // Even if dictionary failed for some words.
-            showResultsList();
+            // REMOVE ALL WORDS WITHOUT VALID DEFINITIONS
+            Iterator<WordResult> iterator = resultsList.iterator();
+
+            while (iterator.hasNext()) {
+                WordResult w = iterator.next();
+
+                if (w.getDefinition() == null ||
+                        w.getDefinition().trim().isEmpty() ||
+                        w.getDefinition().equals("Definition not available.") ||
+                        w.getDefinition().equals("Definition not found.")) {
+
+                    iterator.remove();
+                }
+            }
+
+            if (resultsList.isEmpty()) {
+                showNoResults();
+            } else {
+                showResultsList();
+            }
         }
     }
 
-    // ----------------------------------------------------------------
-    // UI STATE HANDLERS
-    // ----------------------------------------------------------------
     private void showResultsList() {
         shimmerRecycler.setVisibility(View.GONE);
         layoutNoResults.setVisibility(View.GONE);
-
         resultsRecycler.setVisibility(View.VISIBLE);
         wordAdapter.notifyDataSetChanged();
     }
@@ -185,7 +182,6 @@ public class ResultsActivity extends AppCompatActivity {
     private void showNoResults() {
         shimmerRecycler.setVisibility(View.GONE);
         resultsRecycler.setVisibility(View.GONE);
-
         layoutNoResults.setVisibility(View.VISIBLE);
     }
 
