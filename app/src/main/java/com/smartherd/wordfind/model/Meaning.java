@@ -1,14 +1,16 @@
 package com.smartherd.wordfind.model;
 
 import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Represents a single meaning block for a word from the Dictionary API.
- * Fully null-safe, Serializable, and robust against missing API fields.
+ * Represents a single meaning block from dictionaryapi.dev.
+ * Includes part of speech, definitions, synonyms, antonyms.
+ * Fully null-safe and Serializable.
  */
 public class Meaning implements Serializable {
 
@@ -18,8 +20,14 @@ public class Meaning implements Serializable {
     @SerializedName("definitions")
     private List<Definition> definitions = new ArrayList<>();
 
+    @SerializedName("synonyms")
+    private List<String> synonyms = new ArrayList<>();
+
+    @SerializedName("antonyms")
+    private List<String> antonyms = new ArrayList<>();
+
     // ---------------------------------------------------
-    // GETTERS (null-safe)
+    // GETTERS (NULL-SAFE)
     // ---------------------------------------------------
 
     public String getPartOfSpeech() {
@@ -30,8 +38,16 @@ public class Meaning implements Serializable {
         return definitions != null ? definitions : Collections.emptyList();
     }
 
+    public List<String> getSynonyms() {
+        return synonyms != null ? synonyms : Collections.emptyList();
+    }
+
+    public List<String> getAntonyms() {
+        return antonyms != null ? antonyms : Collections.emptyList();
+    }
+
     // ---------------------------------------------------
-    // SETTERS (optional but safe)
+    // SETTERS (OPTIONAL BUT SAFE)
     // ---------------------------------------------------
 
     public void setPartOfSpeech(String partOfSpeech) {
@@ -42,8 +58,16 @@ public class Meaning implements Serializable {
         this.definitions = definitions != null ? definitions : new ArrayList<>();
     }
 
+    public void setSynonyms(List<String> synonyms) {
+        this.synonyms = synonyms != null ? synonyms : new ArrayList<>();
+    }
+
+    public void setAntonyms(List<String> antonyms) {
+        this.antonyms = antonyms != null ? antonyms : new ArrayList<>();
+    }
+
     // ---------------------------------------------------
-    // DEBUGGING SUPPORT
+    // DEBUG / LOGGING SUPPORT
     // ---------------------------------------------------
 
     @Override
@@ -51,6 +75,8 @@ public class Meaning implements Serializable {
         return "Meaning{" +
                 "partOfSpeech='" + getPartOfSpeech() + '\'' +
                 ", definitions=" + getDefinitions() +
+                ", synonyms=" + getSynonyms() +
+                ", antonyms=" + getAntonyms() +
                 '}';
     }
 }

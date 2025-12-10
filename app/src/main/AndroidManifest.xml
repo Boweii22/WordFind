@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WordFind">
         <activity
+            android:name=".WordDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".NoResultActivity"
             android:exported="false" />
         <activity
